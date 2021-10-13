@@ -237,20 +237,20 @@ class Filter extends \Magento\Backend\Block\Widget\Grid\Extended
         if ($attribute->getFilterOptions()) {
             $options = [];
 
-            foreach ($attribute->getFilterOptions() as $optionValue => $label) {
-                $options[] = ['value' => $optionValue, 'label' => $label];
+            foreach ($attribute->getFilterOptions() as $value => $label) {
+                $options[] = ['value' => $value, 'label' => $label];
             }
         } else {
             $options = $attribute->getSource()->getAllOptions(false);
         }
         if ($size = count($options)) {
-            // add empty value option
+            // add empty vaue option
             $firstOption = reset($options);
 
             if ('' === $firstOption['value']) {
                 $options[key($options)]['label'] = '';
             } else {
-                array_unshift($options, ['value' => '', 'label' => __('-- Not Selected --')]);
+                array_unshift($options, ['value' => '', 'label' => '']);
             }
             $arguments = [
                 'name' => $this->getFilterElementName($attribute->getAttributeCode()),

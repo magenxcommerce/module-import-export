@@ -43,12 +43,6 @@ class History extends \Magento\Framework\Model\AbstractModel
     protected $reportHelper;
 
     /**
-     * @var \Magento\Backend\Model\Auth\Session
-     * @since 100.3.1
-     */
-    protected $session;
-
-    /**
      * Class constructor
      *
      * @param \Magento\Framework\Model\Context $context
@@ -299,8 +293,6 @@ class History extends \Magento\Framework\Model\AbstractModel
     }
 
     /**
-     * Load the last inserted item
-     *
      * @return $this
      */
     public function loadLastInsertItem()

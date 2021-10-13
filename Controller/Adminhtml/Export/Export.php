@@ -3,22 +3,17 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
-
 namespace Magento\ImportExport\Controller\Adminhtml\Export;
 
-use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Action\HttpPostActionInterface as HttpPostActionInterface;
-use Magento\Framework\App\Response\Http\FileFactory;
 use Magento\Framework\Controller\ResultFactory;
-use Magento\Framework\MessageQueue\PublisherInterface;
 use Magento\ImportExport\Controller\Adminhtml\Export as ExportController;
+use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\Response\Http\FileFactory;
 use Magento\ImportExport\Model\Export as ExportModel;
-use Magento\ImportExport\Model\Export\Entity\ExportInfoFactory;
+use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\Exception\LocalizedException;
 
-/**
- * Controller for export operation.
- */
 class Export extends ExportController implements HttpPostActionInterface
 {
     /**
@@ -32,38 +27,18 @@ class Export extends ExportController implements HttpPostActionInterface
     private $sessionManager;
 
     /**
-     * @var PublisherInterface
-     */
-    private $messagePublisher;
-
-    /**
-     * @var ExportInfoFactory
-     */
-    private $exportInfoFactory;
-
-    /**
-     * @param Context $context
-     * @param FileFactory $fileFactory
-     * @param \Magento\Framework\Session\SessionManagerInterface|null $sessionManager
-     * @param PublisherInterface|null $publisher
-     * @param ExportInfoFactory|null $exportInfoFactory
+     * @param \Magento\Backend\App\Action\Context $context
+     * @param \Magento\Framework\App\Response\Http\FileFactory $fileFactory
+     * @param \Magento\Framework\Session\SessionManagerInterface $sessionManager [optional]
      */
     public function __construct(
         Context $context,
         FileFactory $fileFactory,
-        \Magento\Framework\Session\SessionManagerInterface $sessionManager = null,
-        PublisherInterface $publisher = null,
-        ExportInfoFactory $exportInfoFactory = null
+        \Magento\Framework\Session\SessionManagerInterface $sessionManager = null
     ) {
         $this->fileFactory = $fileFactory;
         $this->sessionManager = $sessionManager ?: \Magento\Framework\App\ObjectManager::getInstance()
             ->get(\Magento\Framework\Session\SessionManagerInterface::class);
-        $this->messagePublisher = $publisher ?: \Magento\Framework\App\ObjectManager::getInstance()
-            ->get(PublisherInterface::class);
-        $this->exportInfoFactory = $exportInfoFactory ?:
-            \Magento\Framework\App\ObjectManager::getInstance()->get(
-                ExportInfoFactory::class
-            );
         parent::__construct($context);
     }
 
@@ -76,27 +51,19 @@ class Export extends ExportController implements HttpPostActionInterface
     {
         if ($this->getRequest()->getPost(ExportModel::FILTER_ELEMENT_GROUP)) {
             try {
-                $params = $this->getRequest()->getParams();
+                /** @var $model \Magento\ImportExport\Model\Export */
+                $model = $this->_objectManager->create(\Magento\ImportExport\Model\Export::class);
+                $model->setData($this->getRequest()->getParams());
 
-                if (!array_key_exists('skip_attr', $params)) {
-                    $params['skip_attr'] = [];
-                }
-
-                /** @var ExportInfoFactory $dataObject */
-                $dataObject = $this->exportInfoFactory->create(
-                    $params['file_format'],
-                    $params['entity'],
-                    $params['export_filter'],
-                    $params['skip_attr']
+                $this->sessionManager->writeClose();
+                return $this->fileFactory->create(
+                    $model->getFileName(),
+                    $model->export(),
+                    DirectoryList::VAR_DIR,
+                    $model->getContentType()
                 );
-
-                $this->messagePublisher->publish('import_export.export', $dataObject);
-                $this->messageManager->addSuccessMessage(
-                    __(
-                        'Message is added to queue, wait to get your file soon.'
-                        . ' Make sure your cron job is running to export the file'
-                    )
-                );
+            } catch (LocalizedException $e) {
+                $this->messageManager->addError($e->getMessage());
             } catch (\Exception $e) {
                 $this->_objectManager->get(\Psr\Log\LoggerInterface::class)->critical($e);
                 $this->messageManager->addError(__('Please correct the data sent value.'));

@@ -3,70 +3,58 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
-
 namespace Magento\ImportExport\Test\Unit\Model\Report;
 
-use Magento\Framework\Filesystem;
-use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
-use Magento\ImportExport\Helper\Report;
-use Magento\ImportExport\Model\Export\Adapter\Csv;
-use Magento\ImportExport\Model\Export\Adapter\CsvFactory;
-use Magento\ImportExport\Model\Import\ErrorProcessing\ProcessingError;
-use Magento\ImportExport\Model\Import\ErrorProcessing\ProcessingErrorAggregator;
-use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
-
-class CsvTest extends TestCase
+class CsvTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @var Report|MockObject
+     * @var \Magento\ImportExport\Helper\Report|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $reportHelperMock;
 
     /**
-     * @var CsvFactory|MockObject
+     * @var \Magento\ImportExport\Model\Export\Adapter\CsvFactory|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $outputCsvFactoryMock;
 
     /**
-     * @var Csv|MockObject
+     * @var \Magento\ImportExport\Model\Export\Adapter\Csv|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $outputCsvMock;
 
     /**
-     * @var \Magento\ImportExport\Model\Import\Source\CsvFactory|MockObject
+     * @var \Magento\ImportExport\Model\Import\Source\CsvFactory|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $sourceCsvFactoryMock;
 
     /**
-     * @var Csv|MockObject
+     * @var \Magento\ImportExport\Model\Export\Adapter\Csv|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $sourceCsvMock;
 
     /**
-     * @var Filesystem|MockObject
+     * @var \Magento\Framework\Filesystem|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $filesystemMock;
 
     /**
-     * @var \Magento\ImportExport\Model\Report\Csv|ObjectManager
+     * @var \Magento\ImportExport\Model\Report\Csv|\Magento\Framework\TestFramework\Unit\Helper\ObjectManager
      */
     protected $csvModel;
 
-    protected function setUp(): void
+    protected function setUp()
     {
-        $objectManager = new ObjectManager($this);
+        $objectManager = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
         $testDelimiter = 'some_delimiter';
 
-        $this->reportHelperMock = $this->createMock(Report::class);
+        $this->reportHelperMock = $this->createMock(\Magento\ImportExport\Helper\Report::class);
         $this->reportHelperMock->expects($this->any())->method('getDelimiter')->willReturn($testDelimiter);
 
         $this->outputCsvFactoryMock = $this->createPartialMock(
-            CsvFactory::class,
+            \Magento\ImportExport\Model\Export\Adapter\CsvFactory::class,
             ['create']
         );
-        $this->outputCsvMock = $this->createMock(Csv::class);
+        $this->outputCsvMock = $this->createMock(\Magento\ImportExport\Model\Export\Adapter\Csv::class);
         $this->outputCsvFactoryMock->expects($this->any())->method('create')->willReturn($this->outputCsvMock);
 
         $this->sourceCsvFactoryMock = $this->createPartialMock(
@@ -91,7 +79,7 @@ class CsvTest extends TestCase
             )
             ->willReturn($this->sourceCsvMock);
 
-        $this->filesystemMock = $this->createMock(Filesystem::class);
+        $this->filesystemMock = $this->createMock(\Magento\Framework\Filesystem::class);
 
         $this->csvModel = $objectManager->getObject(
             \Magento\ImportExport\Model\Report\Csv::class,
@@ -107,10 +95,10 @@ class CsvTest extends TestCase
     public function testCreateReport()
     {
         $errorAggregatorMock = $this->createMock(
-            ProcessingErrorAggregator::class
+            \Magento\ImportExport\Model\Import\ErrorProcessing\ProcessingErrorAggregator::class
         );
         $errorProcessingMock = $this->createPartialMock(
-            ProcessingError::class,
+            \Magento\ImportExport\Model\Import\ErrorProcessing\ProcessingError::class,
             ['getErrorMessage']
         );
         $errorProcessingMock->expects($this->any())->method('getErrorMessage')->willReturn('some_error_message');
